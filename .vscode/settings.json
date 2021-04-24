@@ -1,0 +1,10 @@
+{
+  "rust-analyzer.cargo.target": "thumbv6m-none-eabi",
+  "rust-analyzer.checkOnSave.allTargets": false,
+  "rust.build_bin": "pwr",
+  "rust.target": "thumbv6m-none-eabi",
+  "rust.unstable_features": true,
+  "rust.all_targets": false,
+  "rust.all_features": false,
+  "rust.cfg_test": false
+}

@@ -1,0 +1,28 @@
+[package]
+name = "minesweeper"
+authors = ["Vitaly Domnikov <oss@vitaly.codes>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/dotcypress/pwr"
+version = "0.0.0"
+
+[dependencies]
+cortex-m = "0.7.1"
+cortex-m-rt = "0.6.10"
+cortex-m-rtic = "0.5.5"
+cortex-m-semihosting = "0.3.5"
+klaptik = "0.0.1"
+panic-halt = "0.2.0"
+panic-semihosting = "0.5.3"
+ssd1306 = "0.5.1"
+stm32g0xx-hal = { version = "0.1.0", features = ["rt", "stm32g031"] }
+
+[profile.dev]
+incremental = false
+
+[profile.release]
+debug = false
+codegen-units = 1
+incremental = false
+lto = true

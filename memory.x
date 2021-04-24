@@ -1,0 +1,6 @@
+/* Linker script for the STM32G031K8Tx */
+MEMORY
+{
+  FLASH : ORIGIN = 0x08000000, LENGTH = 64K
+  RAM : ORIGIN = 0x20000000, LENGTH = 8K
+}
