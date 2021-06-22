@@ -84,9 +84,6 @@ const APP: () = {
       .connect(I2CDIBuilder::new().init(i2c_bus))
       .into::<GraphicsMode<_, _>>();
     display.init().expect("failed to init display");
-    display
-      .set_brightness(Brightness::NORMAL)
-      .expect("failed to dim display");
 
     let game = Minesweeper::new(BOMBS);
     let canvas = Ssd1306Canvas(display.into_properties());
@@ -166,7 +163,6 @@ pub struct Ssd1306Canvas(DisplayController);
 
 impl Canvas for Ssd1306Canvas {
   fn draw(&mut self, bounds: Rect, buffer: &[u8]) {
-    let controller = &mut self.0;
     let origin = bounds.origin();
     let size = bounds.size();
     let start = (origin.x() as u8, origin.y() as u8);
@@ -174,6 +170,7 @@ impl Canvas for Ssd1306Canvas {
       (origin.x() + size.width()) as u8,
       (origin.y() + size.height()) as u8,
     );
+    let controller = &mut self.0;
     controller.set_draw_area(start, end).expect("draw failed");
     controller.draw(buffer).expect("draw failed");
   }
