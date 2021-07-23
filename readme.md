@@ -4,6 +4,14 @@ Rate my game setup 😜
 
 <img width="500" alt="minesweeper.rs" src="hardware.jpg" />
 
+## Components
+
+* [Placebo Development Board](https://github.com/dotcypress/placebo)
+* SSD1306 OLED Display
+* Capacitive Touch Buttons
+* Analog Thumb Stick
+* CR2032 Battery
+
 ## License
 
 Licensed under either of
