@@ -49,6 +49,7 @@ const APP: () = {
     #[init]
     fn init(ctx: init::Context) -> init::LateResources {
         let mut rcc = ctx.device.RCC.freeze(hal::rcc::Config::pll());
+
         let mut delay = ctx.device.TIM1.delay(&mut rcc);
 
         let mut rng_timer = ctx.device.TIM2.timer(&mut rcc);
@@ -79,9 +80,9 @@ const APP: () = {
         let i2c_config = Config::with_timing(0x0010061A);
         let i2c_bus = ctx.device.I2C2.i2c(sda, scl, i2c_config, &mut rcc);
 
-        delay.delay(10.ms());
         let interface = I2CDisplayInterface::new(i2c_bus);
         let mut display = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0);
+        delay.delay(10.ms());
         display.init().expect("failed to init display");
         let canvas = Ssd1306Canvas(display);
 
@@ -103,10 +104,12 @@ const APP: () = {
 
     #[task(binds = TIM14, resources = [canvas, game, render_timer, ui])]
     fn render_timer_tick(ctx: render_timer_tick::Context) {
-        let render_timer = ctx.resources.render_timer;
-        let canvas = ctx.resources.canvas;
-        let game = ctx.resources.game;
-        let ui = ctx.resources.ui;
+        let render_timer_tick::Resources {
+            render_timer,
+            canvas,
+            game,
+            ui,
+        } = ctx.resources;
 
         ui.set_state(&game);
         ui.render(canvas);
@@ -116,22 +119,25 @@ const APP: () = {
 
     #[task(binds = TIM17, resources = [thumb, game, input_timer])]
     fn input_timer_tick(ctx: input_timer_tick::Context) {
-        let game = ctx.resources.game;
-        let input_timer = ctx.resources.input_timer;
-        let (adc, x_pin, y_pin) = ctx.resources.thumb;
+        let input_timer_tick::Resources {
+            input_timer,
+            game,
+            thumb: (adc, x_pin, y_pin),
+        } = ctx.resources;
 
         let x: u32 = adc.read(x_pin).unwrap();
-        if x > 3000 {
+        let y: u32 = adc.read(y_pin).unwrap();
+
+        if x > 3_000 {
             game.button_click(GameButton::DPad(Dir::Right));
-        } else if x < 1000 {
+        } else if x < 1_000 {
             game.button_click(GameButton::DPad(Dir::Left));
         }
 
-        let y: u32 = adc.read(y_pin).unwrap();
-        if y < 1000 {
-            game.button_click(GameButton::DPad(Dir::Down));
-        } else if y > 3000 {
+        if y > 3_000 {
             game.button_click(GameButton::DPad(Dir::Up));
+        } else if y < 1_000 {
+            game.button_click(GameButton::DPad(Dir::Down));
         }
 
         input_timer.clear_irq();
@@ -139,10 +145,12 @@ const APP: () = {
 
     #[task(binds = EXTI4_15, resources = [exti, game, rng_timer])]
     fn button_press(ctx: button_press::Context) {
-        let rng_timer = ctx.resources.rng_timer;
-        let exti = ctx.resources.exti;
+        let button_press::Resources {
+            game,
+            exti,
+            rng_timer,
+        } = ctx.resources;
 
-        let game = ctx.resources.game;
         game.seed_random(rng_timer.get_current());
 
         if exti.is_pending(Event::GPIO7, SignalEdge::Falling) {
