@@ -32,6 +32,7 @@ mod app {
 
     #[shared]
     struct Shared {
+        #[lock_free]
         game: Minesweeper,
         #[lock_free]
         vibro: VibroMotor,
@@ -126,14 +127,9 @@ mod app {
     #[task(binds = TIM14, local = [canvas, ui], shared = [game, render_timer])]
     fn render_timer_tick(ctx: render_timer_tick::Context) {
         let render_timer_tick::LocalResources { canvas, ui } = ctx.local;
-        let render_timer_tick::SharedResources {
-            mut game,
-            render_timer,
-        } = ctx.shared;
+        let render_timer_tick::SharedResources { game, render_timer } = ctx.shared;
 
-        game.lock(|game| {
-            ui.set_state(&game);
-        });
+        ui.set_state(&game);
         ui.render(canvas);
 
         render_timer.clear_irq();
@@ -151,24 +147,21 @@ mod app {
             thumb: (adc, x_pin, y_pin),
         } = ctx.local;
 
-        let input_timer_tick::SharedResources {
-            mut game,
-            input_timer,
-        } = ctx.shared;
+        let input_timer_tick::SharedResources { game, input_timer } = ctx.shared;
 
         let x: u32 = adc.read(x_pin).unwrap();
         let y: u32 = adc.read(y_pin).unwrap();
 
         if x > 3_000 {
-            game.lock(|game| game.button_click(GameButton::DPad(Dir::Right)));
+            game.button_click(GameButton::DPad(Dir::Right));
         } else if x < 1_000 {
-            game.lock(|game| game.button_click(GameButton::DPad(Dir::Left)));
+            game.button_click(GameButton::DPad(Dir::Left));
         }
 
         if y > 3_000 {
-            game.lock(|game| game.button_click(GameButton::DPad(Dir::Up)));
+            game.button_click(GameButton::DPad(Dir::Up));
         } else if y < 1_000 {
-            game.lock(|game| game.button_click(GameButton::DPad(Dir::Down)));
+            game.button_click(GameButton::DPad(Dir::Down));
         }
 
         input_timer.clear_irq();
@@ -179,7 +172,7 @@ mod app {
         let button_press::LocalResources { exti, rng_timer } = ctx.local;
 
         let button_press::SharedResources {
-            mut game,
+            game,
             vibro,
             vibro_timer,
         } = ctx.shared;
@@ -187,15 +180,15 @@ mod app {
         vibro_timer.reset();
         vibro.set_low().unwrap();
 
-        game.lock(|game| game.seed_random(rng_timer.get_current()));
+        game.seed_random(rng_timer.get_current());
 
         if exti.is_pending(Event::GPIO7, SignalEdge::Rising) {
-            game.lock(|game| game.button_click(GameButton::A));
+            game.button_click(GameButton::A);
             exti.unpend(Event::GPIO7);
         }
 
         if exti.is_pending(Event::GPIO4, SignalEdge::Rising) {
-            game.lock(|game| game.button_click(GameButton::B));
+            game.button_click(GameButton::B);
             exti.unpend(Event::GPIO4);
         }
     }
