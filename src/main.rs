@@ -11,44 +11,50 @@ extern crate stm32g0xx_hal as hal;
 mod board;
 mod game;
 mod sprites;
+mod wiring;
 
-use hal::analog::adc::Adc;
 use hal::exti::Event;
-use hal::gpio::{gpioa::*, *};
+use hal::gpio::*;
 use hal::i2c::*;
 use hal::prelude::*;
 use hal::stm32;
-use hal::timer::*;
 use klaptik::*;
-use ssd1306::{mode::BasicMode, prelude::*, *};
+use ssd1306::{prelude::*, *};
 
 use crate::game::*;
-
-const BOMBS: usize = 8;
-
-pub type Thumb = (Adc, PA1<Analog>, PA0<Analog>);
-pub type RngTimer = Timer<stm32::TIM2>;
-pub type InputTimer = Timer<stm32::TIM17>;
-pub type RenderTimer = Timer<stm32::TIM14>;
-pub type DisplayI2c = I2c<stm32::I2C2, PA12<Output<OpenDrain>>, PA11<Output<OpenDrain>>>;
-pub type DisplayController = Ssd1306<I2CInterface<DisplayI2c>, DisplaySize128x64, BasicMode>;
+use crate::wiring::*;
 
 #[rtic::app(device = hal::stm32, peripherals = true)]
-const APP: () = {
-    struct Resources {
-        ui: GameUI,
+mod app {
+    use super::*;
+
+    const BOMBS: usize = 8;
+
+    #[shared]
+    struct Shared {
         game: Minesweeper,
-        canvas: Ssd1306Canvas,
-        thumb: Thumb,
+        #[lock_free]
+        vibro: VibroMotor,
+        #[lock_free]
         render_timer: RenderTimer,
+        #[lock_free]
         input_timer: InputTimer,
-        rng_timer: RngTimer,
+        #[lock_free]
+        vibro_timer: VibroTimer,
+    }
+
+    #[local]
+    struct Local {
         exti: stm32::EXTI,
+        canvas: Ssd1306Canvas,
+        ui: GameUI,
+        rng_timer: RngTimer,
+        thumb: Thumb,
     }
 
     #[init]
-    fn init(ctx: init::Context) -> init::LateResources {
-        let mut rcc = ctx.device.RCC.freeze(hal::rcc::Config::pll());
+    fn init(ctx: init::Context) -> (Shared, Local, init::Monotonics) {
+        let mut rcc = ctx.device.RCC.constrain();
 
         let mut delay = ctx.device.TIM1.delay(&mut rcc);
 
@@ -56,8 +62,12 @@ const APP: () = {
         rng_timer.resume();
 
         let mut render_timer = ctx.device.TIM14.timer(&mut rcc);
-        render_timer.start(32.hz());
+        render_timer.start(24.hz());
         render_timer.listen();
+
+        let mut vibro_timer = ctx.device.TIM16.timer(&mut rcc);
+        vibro_timer.start(120.ms());
+        vibro_timer.listen();
 
         let mut input_timer = ctx.device.TIM17.timer(&mut rcc);
         input_timer.start(8.hz());
@@ -65,10 +75,14 @@ const APP: () = {
 
         let gpioa = ctx.device.GPIOA.split(&mut rcc);
         let gpiob = ctx.device.GPIOB.split(&mut rcc);
+        let gpioc = ctx.device.GPIOC.split(&mut rcc);
 
         let mut exti = ctx.device.EXTI;
-        gpiob.pb4.listen(SignalEdge::Falling, &mut exti);
-        gpiob.pb7.listen(SignalEdge::Falling, &mut exti);
+        gpiob.pb4.listen(SignalEdge::Rising, &mut exti);
+        gpiob.pb7.listen(SignalEdge::Rising, &mut exti);
+
+        let mut vibro = gpioc.pc15.into_open_drain_output();
+        vibro.set_high().unwrap();
 
         let adc = ctx.device.ADC.constrain(&mut rcc);
         let x_pin = gpioa.pa1.into_analog();
@@ -90,94 +104,99 @@ const APP: () = {
         let mut ui = GameUI::new();
         ui.set_state(&game);
 
-        init::LateResources {
-            exti,
-            ui,
-            game,
-            canvas,
-            thumb,
-            rng_timer,
-            input_timer,
-            render_timer,
-        }
+        (
+            Shared {
+                game,
+                input_timer,
+                render_timer,
+                vibro,
+                vibro_timer,
+            },
+            Local {
+                canvas,
+                ui,
+                exti,
+                thumb,
+                rng_timer,
+            },
+            init::Monotonics(),
+        )
     }
 
-    #[task(binds = TIM14, resources = [canvas, game, render_timer, ui])]
+    #[task(binds = TIM14, local = [canvas, ui], shared = [game, render_timer])]
     fn render_timer_tick(ctx: render_timer_tick::Context) {
-        let render_timer_tick::Resources {
+        let render_timer_tick::LocalResources { canvas, ui } = ctx.local;
+        let render_timer_tick::SharedResources {
+            mut game,
             render_timer,
-            canvas,
-            game,
-            ui,
-        } = ctx.resources;
+        } = ctx.shared;
 
-        ui.set_state(&game);
+        game.lock(|game| {
+            ui.set_state(&game);
+        });
         ui.render(canvas);
 
         render_timer.clear_irq();
     }
 
-    #[task(binds = TIM17, resources = [thumb, game, input_timer])]
+    #[task(binds = TIM16, shared = [vibro_timer, vibro])]
+    fn vibro_timer_tick(ctx: vibro_timer_tick::Context) {
+        ctx.shared.vibro.set_high().unwrap();
+        ctx.shared.vibro_timer.clear_irq();
+    }
+
+    #[task(binds = TIM17, local = [thumb], shared = [game, input_timer])]
     fn input_timer_tick(ctx: input_timer_tick::Context) {
-        let input_timer_tick::Resources {
-            input_timer,
-            game,
+        let input_timer_tick::LocalResources {
             thumb: (adc, x_pin, y_pin),
-        } = ctx.resources;
+        } = ctx.local;
+
+        let input_timer_tick::SharedResources {
+            mut game,
+            input_timer,
+        } = ctx.shared;
 
         let x: u32 = adc.read(x_pin).unwrap();
         let y: u32 = adc.read(y_pin).unwrap();
 
         if x > 3_000 {
-            game.button_click(GameButton::DPad(Dir::Right));
+            game.lock(|game| game.button_click(GameButton::DPad(Dir::Right)));
         } else if x < 1_000 {
-            game.button_click(GameButton::DPad(Dir::Left));
+            game.lock(|game| game.button_click(GameButton::DPad(Dir::Left)));
         }
 
         if y > 3_000 {
-            game.button_click(GameButton::DPad(Dir::Up));
+            game.lock(|game| game.button_click(GameButton::DPad(Dir::Up)));
         } else if y < 1_000 {
-            game.button_click(GameButton::DPad(Dir::Down));
+            game.lock(|game| game.button_click(GameButton::DPad(Dir::Down)));
         }
 
         input_timer.clear_irq();
     }
 
-    #[task(binds = EXTI4_15, resources = [exti, game, rng_timer])]
+    #[task(binds = EXTI4_15, local = [exti, rng_timer], shared = [game, vibro, vibro_timer])]
     fn button_press(ctx: button_press::Context) {
-        let button_press::Resources {
-            game,
-            exti,
-            rng_timer,
-        } = ctx.resources;
+        let button_press::LocalResources { exti, rng_timer } = ctx.local;
 
-        game.seed_random(rng_timer.get_current());
+        let button_press::SharedResources {
+            mut game,
+            vibro,
+            vibro_timer,
+        } = ctx.shared;
 
-        if exti.is_pending(Event::GPIO7, SignalEdge::Falling) {
-            game.button_click(GameButton::A);
+        vibro_timer.reset();
+        vibro.set_low().unwrap();
+
+        game.lock(|game| game.seed_random(rng_timer.get_current()));
+
+        if exti.is_pending(Event::GPIO7, SignalEdge::Rising) {
+            game.lock(|game| game.button_click(GameButton::A));
             exti.unpend(Event::GPIO7);
         }
 
-        if exti.is_pending(Event::GPIO4, SignalEdge::Falling) {
-            game.button_click(GameButton::B);
+        if exti.is_pending(Event::GPIO4, SignalEdge::Rising) {
+            game.lock(|game| game.button_click(GameButton::B));
             exti.unpend(Event::GPIO4);
         }
-    }
-};
-
-pub struct Ssd1306Canvas(DisplayController);
-
-impl Canvas for Ssd1306Canvas {
-    fn draw(&mut self, bounds: Rect, buffer: &[u8]) {
-        let origin = bounds.origin();
-        let size = bounds.size();
-        let start = (origin.x() as u8, origin.y() as u8);
-        let end = (
-            (origin.x() + size.width()) as u8,
-            (origin.y() + size.height()) as u8,
-        );
-        let controller = &mut self.0;
-        controller.set_draw_area(start, end).expect("draw failed");
-        controller.draw(buffer).expect("draw failed");
     }
 }

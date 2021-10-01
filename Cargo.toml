@@ -10,7 +10,7 @@ version = "0.0.0"
 [dependencies]
 cortex-m = "0.7.1"
 cortex-m-rt = "0.6.10"
-cortex-m-rtic = "0.5.5"
+cortex-m-rtic = "0.6.0-rc.2"
 cortex-m-semihosting = "0.3.5"
 klaptik = "0.0.1"
 panic-halt = "0.2.0"
@@ -22,7 +22,6 @@ stm32g0xx-hal = { version = "0.1.0", features = ["rt", "stm32g031"] }
 incremental = false
 
 [profile.release]
-debug = false
-codegen-units = 1
 incremental = false
 lto = true
+opt-level = "z"
