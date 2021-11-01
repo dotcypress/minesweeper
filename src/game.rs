@@ -174,48 +174,51 @@ impl Minesweeper {
 }
 
 widget!(
-  view: GameUI<&Minesweeper> {
-    bg(Background, Point(0, 0), Size(128, 64), 1)
-    logo(Icon<RomSprite>, Point(0, 0), LOGO, b'~')
-    game_screen(GameScreen)
-  },
-  set_state: |view: &mut GameUI, state: &Minesweeper| {
-    view.game_screen.set_state(state);
-  }
+    GameUI<&Minesweeper>,
+    nodes:  {
+        bg(Background, Point(0, 0), Size(128, 64), 1)
+        logo(Icon<RomSprite>, Point(0, 0), LOGO, b'~')
+        game_screen(GameScreen)
+    },
+    set_state: |nodes: &mut GameUI, state: &Minesweeper| {
+        nodes.game_screen.set_state(state);
+    }
 );
 
 widget!(
-  view: GameScreen<&Minesweeper> {
-    board(GameBoard)
-    win(Icon<RomSprite>, Point(24, 24), POPUP, b'W')
-    game_over(Icon<RomSprite>, Point(24, 24), POPUP, b'L')
-  },
-  active_node: board,
-  set_state: |view: &mut GameScreen, state: &Minesweeper| {
-    let node = match state.status {
-      GameStatus::GameOver => GameScreenNode::GameOver,
-      GameStatus::Win => GameScreenNode::Win,
-      _ => GameScreenNode::Board,
-    };
-    view.set_active(node);
-    view.board.set_state(&state.board);
-  }
+    GameScreen<&Minesweeper>,
+    nodes: {
+        board(GameBoard)
+        win(Icon<RomSprite>, Point(24, 24), POPUP, b'W')
+        game_over(Icon<RomSprite>, Point(24, 24), POPUP, b'L')
+    },
+    active_node: board,
+    set_state: |nodes: &mut GameScreen, state: &Minesweeper| {
+        let node = match state.status {
+            GameStatus::GameOver => GameScreenNode::GameOver,
+            GameStatus::Win => GameScreenNode::Win,
+            _ => GameScreenNode::Board,
+        };
+        nodes.set_active(Some(node));
+        nodes.board.set_state(&state.board);
+    }
 );
 
 pub type GameWidget = TextBox<RomSprite, { Board::TILES }, { Board::WIDTH as u16 }>;
 
 widget!(
-  view: GameBoard<&Board> {
-    field(GameWidget, Point(0, 16), GAME_TILES, "")
-  },
-  set_state: |view: &mut GameBoard, state: &Board| {
-    let cursor_idx = state.cursor_offset();
-    for (idx, tile) in state.tiles().iter().enumerate() {
-      let mut glyph = tile.into();
-      if idx == cursor_idx {
-        glyph += 13;
-      }
-      view.field.set_glyph(idx, glyph);
+    GameBoard<&Board>,
+    nodes: {
+        field(GameWidget, Point(0, 16), GAME_TILES, "")
+    },
+    set_state: |nodes: &mut GameBoard, state: &Board| {
+        let cursor_idx = state.cursor_offset();
+            for (idx, tile) in state.tiles().iter().enumerate() {
+            let mut glyph = tile.into();
+            if idx == cursor_idx {
+                glyph += 13;
+            }
+            nodes.field.set_glyph(idx, glyph);
+        }
     }
-  }
 );
