@@ -80,9 +80,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cortex-m"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "643a210c1bdc23d0db511e2a576082f4ff4dcae9d0c37f50b431b8f8439d6d6b"
+checksum = "2ac919ef424449ec8c08d515590ce15d9262c0ca5f0da5b0c901e971a3b783b3"
 dependencies = [
  "bare-metal 0.2.5",
  "bitfield",
@@ -92,9 +92,9 @@ dependencies = [
 
 [[package]]
 name = "cortex-m-rt"
-version = "0.6.13"
+version = "0.6.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "980c9d0233a909f355ed297ef122f257942de5e0a2cb1c39f60684b65bcb90fb"
+checksum = "454f278bf469e2de0a4d22ea019d169d8944f86957c8207a39e3f66c32be2fc6"
 dependencies = [
  "cortex-m-rt-macros",
  "r0",
@@ -102,9 +102,9 @@ dependencies = [
 
 [[package]]
 name = "cortex-m-rt-macros"
-version = "0.1.8"
+version = "0.6.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4717562afbba06e760d34451919f5c3bf3ac15c7bb897e8b04862a7428378647"
+checksum = "c8e3aa52243e26f5922fa522b0814019e0c98fc567e2756d715dce7ad7a81f49"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -113,9 +113,9 @@ dependencies = [
 
 [[package]]
 name = "cortex-m-rtic"
-version = "0.6.0-rc.2"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "248b2f20fd8f885f8fa802766ea3f076692eb8d57e611c8afd1b82d3000cfe9a"
+checksum = "daae9c453d0d5b467ebcdeae7aba537cb45a7de899930ad09f01c8dc42aa531f"
 dependencies = [
  "bare-metal 1.0.0",
  "cortex-m",
@@ -128,24 +128,15 @@ dependencies = [
 
 [[package]]
 name = "cortex-m-rtic-macros"
-version = "0.6.0-rc.2"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "683784a9ebcb2531233fd6d866ba98660bbc927b1028871bea6d4cee4c330c54"
+checksum = "7ba355d1639cf8df7c0658f01bd8952d11d49a029309118787eb54afc47a6cf8"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
  "quote",
  "rtic-syntax",
  "syn",
-]
-
-[[package]]
-name = "cortex-m-semihosting"
-version = "0.3.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6bffa6c1454368a6aa4811ae60964c38e6996d397ff8095a8b9211b1c1f749bc"
-dependencies = [
- "cortex-m",
 ]
 
 [[package]]
@@ -208,15 +199,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "embedded-time"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86fbafcea0dea120d8ed8af67ddbf82afc031f1d3b064920645db8d061781e2c"
-dependencies = [
- "num",
-]
-
-[[package]]
 name = "hash32"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -255,9 +237,9 @@ dependencies = [
 
 [[package]]
 name = "klaptik"
-version = "0.0.2"
+version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "abd152ac4655dc122823674ad9e093ecf16b6b339ac1a179b865a4f6a40005e9"
+checksum = "1add5f055407c96f51862d548f4f358268b45bf2b805d520acde432e96198d55"
 dependencies = [
  "paste",
 ]
@@ -290,10 +272,8 @@ dependencies = [
  "cortex-m",
  "cortex-m-rt",
  "cortex-m-rtic",
- "cortex-m-semihosting",
  "klaptik",
  "panic-halt",
- "panic-semihosting",
  "ssd1306",
  "stm32g0xx-hal",
 ]
@@ -314,83 +294,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "546c37ac5d9e56f55e73b677106873d9d9f5190605e41a856503623648488cae"
 
 [[package]]
-name = "num"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b7a8e9be5e039e2ff869df49155f1c06bd01ade2117ec783e56ab0932b67a8f"
-dependencies = [
- "num-complex",
- "num-integer",
- "num-iter",
- "num-rational",
- "num-traits",
-]
-
-[[package]]
-name = "num-complex"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "747d632c0c558b87dbabbe6a82f3b4ae03720d0646ac5b7b4dae89394be5f2c5"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "num-integer"
-version = "0.1.44"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2cc698a63b549a70bc047073d2949cce27cd1c7b0a4a862d08a8031bc2801db"
-dependencies = [
- "autocfg",
- "num-traits",
-]
-
-[[package]]
-name = "num-iter"
-version = "0.1.42"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2021c8337a54d21aca0d59a92577a029af9431cb59b909b03252b9c164fad59"
-dependencies = [
- "autocfg",
- "num-integer",
- "num-traits",
-]
-
-[[package]]
-name = "num-rational"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12ac428b1cb17fce6f731001d307d351ec70a6d202fc2e60f7d4c5e42d8f4f07"
-dependencies = [
- "autocfg",
- "num-integer",
- "num-traits",
-]
-
-[[package]]
-name = "num-traits"
-version = "0.2.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a64b1ec5cda2586e284722486d802acf1f7dbdc623e2bfc57e65ca1cd099290"
-dependencies = [
- "autocfg",
-]
-
-[[package]]
 name = "panic-halt"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de96540e0ebde571dc55c73d60ef407c653844e6f9a1e2fdbd40c07b9252d812"
-
-[[package]]
-name = "panic-semihosting"
-version = "0.5.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3d55dedd501dfd02514646e0af4d7016ce36bc12ae177ef52056989966a1eec"
-dependencies = [
- "cortex-m",
- "cortex-m-semihosting",
-]
 
 [[package]]
 name = "paste"
@@ -486,24 +393,21 @@ dependencies = [
 
 [[package]]
 name = "rtic-core"
-version = "0.3.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bd58a6949de8ff797a346a28d9f13f7b8f54fa61bb5e3cb0985a4efb497a5ef"
+checksum = "d9369355b04d06a3780ec0f51ea2d225624db777acbc60abd8ca4832da5c1a42"
 
 [[package]]
 name = "rtic-monotonic"
-version = "0.1.0-rc.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d337abf8372869b326af4b0d612f82d934d6d2bcc700908c367a2c7e8db34ba7"
-dependencies = [
- "embedded-time",
-]
+checksum = "fb8b0b822d1a366470b9cea83a1d4e788392db763539dc4ba022bcc787fece82"
 
 [[package]]
 name = "rtic-syntax"
-version = "0.5.0-rc.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a608b5c4d51aa5d6a9c0fb62ed716a5d7302391fdbaf116aad69606b8ba4cc6"
+checksum = "24b149ff3177daeee442bb81ef7867d20d3c1ffea8a0a94e46e0e4b876ec4be2"
 dependencies = [
  "indexmap",
  "proc-macro2",
@@ -583,9 +487,9 @@ dependencies = [
 
 [[package]]
 name = "stm32g0xx-hal"
-version = "0.1.0"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2d93d8efd67a0f7d7be7409e9b0a0e3eebcc8b311f03a7f2695121d1fc13a92"
+checksum = "8bfb57f421c3acb1dafef58cfee1d6beefab85c7bf618080aeef4c4a3c3c250d"
 dependencies = [
  "bare-metal 1.0.0",
  "cortex-m",
