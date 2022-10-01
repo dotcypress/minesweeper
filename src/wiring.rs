@@ -8,7 +8,7 @@ use ssd1306::{mode::BasicMode, prelude::*, *};
 
 pub type VibroMotor = PC15<Output<OpenDrain>>;
 pub type Thumb = (Adc, PA1<Analog>, PA0<Analog>);
-pub type RngTimer = Timer<stm32::TIM2>;
+pub type RngTimer = Timer<stm32::TIM3>;
 pub type VibroTimer = Timer<stm32::TIM16>;
 pub type InputTimer = Timer<stm32::TIM17>;
 pub type RenderTimer = Timer<stm32::TIM14>;

@@ -59,7 +59,7 @@ mod app {
 
         let mut delay = ctx.device.TIM1.delay(&mut rcc);
 
-        let mut rng_timer = ctx.device.TIM2.timer(&mut rcc);
+        let mut rng_timer = ctx.device.TIM3.timer(&mut rcc);
         rng_timer.resume();
 
         let mut render_timer = ctx.device.TIM14.timer(&mut rcc);

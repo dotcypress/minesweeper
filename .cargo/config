@@ -1,5 +1,5 @@
 [target.thumbv6m-none-eabi]
-runner = "probe-run --chip STM32G031F4"
+runner = "probe-run --chip STM32G030F6"
 # runner = "arm-none-eabi-gdb -q"
 
 rustflags = [

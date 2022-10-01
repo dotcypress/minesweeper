@@ -14,7 +14,7 @@ cortex-m-rtic = "1.0.0"
 panic-halt = "0.2.0"
 klaptik = "0.0.3"
 ssd1306 = "0.7.0"
-stm32g0xx-hal = { version = "0.1.2", features = ["rt", "stm32g031"] }
+stm32g0xx-hal = { version = "0.1.2", features = ["rt", "stm32g030"] }
 
 [profile.dev]
 incremental = false
