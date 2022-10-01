@@ -62,15 +62,15 @@ pub struct Board {
 }
 
 impl Board {
-    pub const TILES: usize = 6 * 16;
-    pub const WIDTH: u16 = 16;
-    pub const HEIGHT: u16 = 6;
-    pub const SIZE: Size = Size(Board::WIDTH, Board::HEIGHT);
+    pub const TILES: usize = 6 * 12;
+    pub const WIDTH: u32 = 12;
+    pub const HEIGHT: u32 = 6;
+    pub const SIZE: Size = Size::new(Board::WIDTH, Board::HEIGHT);
 
     pub fn new() -> Self {
         Self {
             tiles: [Tile::default(); Self::TILES],
-            cursor: Point(Self::WIDTH / 2, Self::HEIGHT / 2),
+            cursor: Point::new(Self::WIDTH as i32 / 2, Self::HEIGHT as i32 / 2),
         }
     }
 
@@ -109,7 +109,7 @@ impl Board {
     }
 
     fn point_offset(point: Point) -> usize {
-        let offset = point.x() + point.y() * Board::WIDTH;
+        let offset = point.x + point.y * Board::WIDTH as i32;
         offset as usize
     }
 }
@@ -148,12 +148,12 @@ impl Iterator for Neighbors {
             let addr = Self::NEIGHBORHOOD[self.next];
             self.next += 1;
 
-            let x = self.origin.x() as i16 + addr.0;
-            let y = self.origin.y() as i16 + addr.1;
+            let x = self.origin.x as i16 + addr.0;
+            let y = self.origin.y as i16 + addr.1;
 
-            if x >= 0 && y >= 0 && x < Board::SIZE.width() as i16 && y < Board::SIZE.height() as i16
+            if x >= 0 && y >= 0 && x < Board::SIZE.width as i16 && y < Board::SIZE.height as i16
             {
-                return Some(Point(x as u16, y as u16));
+                return Some(Point::new(x as i32, y as i32));
             }
         }
     }

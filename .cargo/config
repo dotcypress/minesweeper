@@ -4,7 +4,8 @@ runner = "probe-run --chip STM32G030F6"
 
 rustflags = [
   "-C", "linker=arm-none-eabi-ld",
-  "-C", "link-arg=-Tlink.x"
+  "-C", "link-arg=-Tdefmt.x",
+  "-C", "link-arg=-Tlink.x",
 ]
 
 [build]

@@ -73,16 +73,18 @@ impl Minesweeper {
             GameButton::DPad(dir) => {
                 match dir {
                     Dir::Right => {
-                        cursor = Point(u16::min(cursor.x() + 1, Board::WIDTH - 1), cursor.y());
+                        cursor =
+                            Point::new(i32::min(cursor.x + 1, Board::WIDTH as i32 - 1), cursor.y);
                     }
                     Dir::Down => {
-                        cursor = Point(cursor.x(), u16::min(cursor.y() + 1, Board::HEIGHT - 1));
+                        cursor =
+                            Point::new(cursor.x, i32::min(cursor.y + 1, Board::HEIGHT as i32 - 1));
                     }
                     Dir::Left => {
-                        cursor = Point(cursor.x().saturating_sub(1), cursor.y());
+                        cursor = Point::new(cursor.x.saturating_sub(1), cursor.y);
                     }
                     Dir::Up => {
-                        cursor = Point(cursor.x(), cursor.y().saturating_sub(1));
+                        cursor = Point::new(cursor.x, cursor.y.saturating_sub(1));
                     }
                 }
                 self.board.move_cursor(cursor);
@@ -132,9 +134,9 @@ impl Minesweeper {
 
         let mut bombs_planted = 0;
         while bombs_planted < self.bombs {
-            let pos = Point(
-                self.gen_random(Board::WIDTH),
-                self.gen_random(Board::HEIGHT),
+            let pos = Point::new(
+                self.gen_random(Board::WIDTH as u16),
+                self.gen_random(Board::HEIGHT as u16),
             );
             match self.board.tile_at(pos).content() {
                 TileContent::Hint(_) if pos != self.board.cursor() => {
@@ -147,7 +149,7 @@ impl Minesweeper {
 
         for x in 0..Board::WIDTH {
             for y in 0..Board::HEIGHT {
-                let pos = Point(x, y);
+                let pos = Point::new(x as i32, y as i32);
 
                 if let TileContent::Bomb = self.board.tile_at(pos).content() {
                     continue;
@@ -167,53 +169,60 @@ impl Minesweeper {
         self.status = GameStatus::Playing;
     }
 
-    fn gen_random(&mut self, up_to: u16) -> u16 {
+    fn gen_random(&mut self, up_to: u16) -> i32 {
         self.rng_seed = self.rng_seed * 16_807 % 0x7fff_ffff;
-        (self.rng_seed % up_to as u32) as u16
+        (self.rng_seed % up_to as u32) as i32
+    }
+}
+
+widget! {
+    GameUI<&Minesweeper>,
+    nodes:  {
+        bg: Background, Point::new(0, 0), Size::new(128, 64);
+        logo: SpriteIcon, LOGO, b'~', Point::new(0, 0);
+        game_screen: GameScreen;
+    },
+    update: |nodes: &mut GameUI, state: &Minesweeper| {
+        nodes.game_screen.update(state);
     }
 }
 
 widget!(
-    GameUI<&Minesweeper>,
-    nodes:  {
-        bg(Background, Point(0, 0), Size(128, 64), 1)
-        logo(Icon<RomSprite>, Point(0, 0), LOGO, b'~')
-        game_screen(GameScreen)
-    },
-    set_state: |nodes: &mut GameUI, state: &Minesweeper| {
-        nodes.game_screen.set_state(state);
-    }
-);
-
-widget!(
     GameScreen<&Minesweeper>,
     nodes: {
-        board(GameBoard)
-        win(Icon<RomSprite>, Point(24, 24), POPUP, b'W')
-        game_over(Icon<RomSprite>, Point(24, 24), POPUP, b'L')
+        board: GameBoard;
+        win: SpriteIcon, POPUP, b'W', Point::new(24, 24);
+        game_over: SpriteIcon, POPUP, b'L', Point::new(24, 24);
     },
-    active_node: board,
-    set_state: |nodes: &mut GameScreen, state: &Minesweeper| {
+    active: board,
+    update: |nodes: &mut GameScreen, state: &Minesweeper| {
         let node = match state.status {
             GameStatus::GameOver => GameScreenNode::GameOver,
             GameStatus::Win => GameScreenNode::Win,
             _ => GameScreenNode::Board,
         };
         nodes.set_active(Some(node));
-        nodes.board.set_state(&state.board);
+        nodes.board.update(&state.board);
     }
 );
 
-pub type GameWidget = TextBox<RomSprite, { Board::TILES }, { Board::WIDTH as u16 }>;
+pub type GameWidget = TextBox<
+    RomSprite,
+    { Board::TILES },
+    { Board::WIDTH as _ },
+    { Board::HEIGHT as _ },
+    { Board::WIDTH as _ },
+>;
 
 widget!(
     GameBoard<&Board>,
     nodes: {
-        field(GameWidget, Point(0, 16), GAME_TILES, "")
+        bg: Background, Point::new(0, 16), Size::new(128, 48);
+        field: GameWidget, GAME_TILES, "", Point::new(0, 16);
     },
-    set_state: |nodes: &mut GameBoard, state: &Board| {
+    update: |nodes: &mut GameBoard, state: &Board| {
         let cursor_idx = state.cursor_offset();
-            for (idx, tile) in state.tiles().iter().enumerate() {
+        for (idx, tile) in state.tiles().iter().enumerate() {
             let mut glyph = tile.into();
             if idx == cursor_idx {
                 glyph += 13;
