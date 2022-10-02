@@ -205,12 +205,11 @@ widget!(
     }
 );
 
-pub type GameWidget = TextBox<RomSprite, { Board::TILES }, 8, 8, { Board::WIDTH as _ }>;
+pub type GameWidget = TextBox<RomSprite, { Board::TILES }, { Board::WIDTH as _ }>;
 
 widget!(
     GameBoard<&Board>,
     nodes: {
-        // bg: Background, Point::new(0, 16), Size::new(128, 48);
         field: GameWidget, GAME_TILES, "", Point::new(0, 16);
     },
     update: |nodes: &mut GameBoard, state: &Board| {
