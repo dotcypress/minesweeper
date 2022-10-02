@@ -72,20 +72,19 @@ impl Minesweeper {
             }
             GameButton::DPad(dir) => {
                 match dir {
-                    Dir::Right => {
-                        cursor =
-                            Point::new(i32::min(cursor.x + 1, Board::WIDTH as i32 - 1), cursor.y);
+                    Dir::Left if cursor.x > 0 => {
+                        cursor = Point::new(cursor.x - 1, cursor.y);
                     }
-                    Dir::Down => {
-                        cursor =
-                            Point::new(cursor.x, i32::min(cursor.y + 1, Board::HEIGHT as i32 - 1));
+                    Dir::Right if cursor.x + 1 < Board::WIDTH as i32 => {
+                        cursor = Point::new(cursor.x + 1, cursor.y);
                     }
-                    Dir::Left => {
-                        cursor = Point::new(cursor.x.saturating_sub(1), cursor.y);
+                    Dir::Up if cursor.y > 0 => {
+                        cursor = Point::new(cursor.x, cursor.y - 1);
                     }
-                    Dir::Up => {
-                        cursor = Point::new(cursor.x, cursor.y.saturating_sub(1));
+                    Dir::Down if cursor.y + 1 < Board::HEIGHT as i32 => {
+                        cursor = Point::new(cursor.x, cursor.y + 1);
                     }
+                    _ => {}
                 }
                 self.board.move_cursor(cursor);
             }
@@ -206,18 +205,12 @@ widget!(
     }
 );
 
-pub type GameWidget = TextBox<
-    RomSprite,
-    { Board::TILES },
-    { Board::WIDTH as _ },
-    { Board::HEIGHT as _ },
-    { Board::WIDTH as _ },
->;
+pub type GameWidget = TextBox<RomSprite, { Board::TILES }, 8, 8, { Board::WIDTH as _ }>;
 
 widget!(
     GameBoard<&Board>,
     nodes: {
-        bg: Background, Point::new(0, 16), Size::new(128, 48);
+        // bg: Background, Point::new(0, 16), Size::new(128, 48);
         field: GameWidget, GAME_TILES, "", Point::new(0, 16);
     },
     update: |nodes: &mut GameBoard, state: &Board| {
