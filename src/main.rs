@@ -16,7 +16,7 @@ use defmt_rtt as _;
 use hal::gpio::*;
 use hal::i2c;
 use hal::prelude::*;
-use klaptik::drivers::st7567::ST7567;
+use klaptik::drivers::st7567::*;
 use klaptik::*;
 use wii_ext::nunchuk::*;
 
@@ -78,8 +78,19 @@ mod app {
             port_a.pa3.into_push_pull_output(),
             port_a.pa5.into_push_pull_output(),
         );
+        display.set_offset(Point::new(4, 0));
 
         display.reset(&mut delay);
+        display
+            .link()
+            .command(|tx| {
+                tx.write(&[
+                    // Command::Bias1_9 as _,
+                    Command::SegmentDirectionRev as _,
+                    // Command::SetCOMNormal as _,
+                ])
+            })
+            .ok();
         display.on();
 
         let sda = port_a.pa12.into_open_drain_output();

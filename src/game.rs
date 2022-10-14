@@ -174,52 +174,52 @@ impl Minesweeper {
     }
 }
 
-widget! {
+widget_group! {
     GameUI<&Minesweeper>,
-    nodes:  {
+    {
         bg: Background, Point::new(0, 0), Size::new(128, 64);
-        logo: SpriteIcon, LOGO, b'~', Point::new(0, 0);
+        logo: RomIcon<Glyph>, LOGO, b'~', Point::new(0, 0);
         game_screen: GameScreen;
     },
-    update: |nodes: &mut GameUI, state: &Minesweeper| {
-        nodes.game_screen.update(state);
+    |game_ui: &mut GameUI, state: &Minesweeper| {
+        game_ui.game_screen.update(state);
     }
 }
 
-widget!(
+widget_mux!(
     GameScreen<&Minesweeper>,
-    nodes: {
+    GameScreenNode::Board,
+    {
         board: GameBoard;
-        win: SpriteIcon, POPUP, b'W', Point::new(24, 24);
-        game_over: SpriteIcon, POPUP, b'L', Point::new(24, 24);
+        win: RomIcon<Glyph>, POPUP, b'W', Point::new(24, 24);
+        game_over: RomIcon<Glyph>, POPUP, b'L', Point::new(24, 24);
     },
-    active: board,
-    update: |nodes: &mut GameScreen, state: &Minesweeper| {
+    |mux: &mut GameScreen, state: &Minesweeper| {
         let node = match state.status {
             GameStatus::GameOver => GameScreenNode::GameOver,
             GameStatus::Win => GameScreenNode::Win,
             _ => GameScreenNode::Board,
         };
-        nodes.set_active(Some(node));
-        nodes.board.update(&state.board);
+        mux.set_active(node);
+        mux.board.update(&state.board);
     }
 );
 
 pub type GameWidget = TextBox<RomSprite, { Board::TILES }, { Board::WIDTH as _ }>;
 
-widget!(
+widget_group!(
     GameBoard<&Board>,
-    nodes: {
+    {
         field: GameWidget, GAME_TILES, "", Point::new(0, 16);
     },
-    update: |nodes: &mut GameBoard, state: &Board| {
+    |board: &mut GameBoard, state: &Board| {
         let cursor_idx = state.cursor_offset();
         for (idx, tile) in state.tiles().iter().enumerate() {
             let mut glyph = tile.into();
             if idx == cursor_idx {
                 glyph += 13;
             }
-            nodes.field.set_glyph(idx, glyph);
+            board.field.set_glyph(idx, glyph);
         }
     }
 );
