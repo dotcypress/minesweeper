@@ -1,6 +1,6 @@
 use klaptik::*;
 
-pub const LOGO: RomSprite = RomSprite::new(
+pub const LOGO: Sprite = Sprite::new(
     Glyphs::Alphabet(b"~"),
     Size::new(72, 16),
     &[
@@ -17,7 +17,7 @@ pub const LOGO: RomSprite = RomSprite::new(
     ],
 );
 
-pub const POPUP: RomSprite = RomSprite::new(
+pub const POPUP: Sprite = Sprite::new(
     Glyphs::Alphabet(b"WL"),
     Size::new(74, 32),
     &[
@@ -64,7 +64,7 @@ pub const POPUP: RomSprite = RomSprite::new(
     ],
 );
 
-pub const GAME_TILES: RomSprite = RomSprite::new(
+pub const GAME_TILES: Sprite = Sprite::new(
     Glyphs::Alphabet(b",-./0123456789:;<=>?@ABCDE"),
     Size::new(8, 8),
     &[

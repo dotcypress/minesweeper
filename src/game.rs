@@ -178,7 +178,7 @@ widget_group! {
     GameUI<&Minesweeper>,
     {
         bg: Background, Point::new(0, 0), Size::new(128, 64);
-        logo: RomIcon<Glyph>, LOGO, b'~', Point::new(0, 0);
+        logo: GlyphIcon, LOGO, b'~', Point::new(0, 0);
         game_screen: GameScreen;
     },
     |game_ui: &mut GameUI, state: &Minesweeper| {
@@ -191,8 +191,8 @@ widget_mux!(
     GameScreenNode::Board,
     {
         board: GameBoard;
-        win: RomIcon<Glyph>, POPUP, b'W', Point::new(24, 24);
-        game_over: RomIcon<Glyph>, POPUP, b'L', Point::new(24, 24);
+        win: GlyphIcon, POPUP, b'W', Point::new(24, 24);
+        game_over: GlyphIcon, POPUP, b'L', Point::new(24, 24);
     },
     |mux: &mut GameScreen, state: &Minesweeper| {
         let node = match state.status {
@@ -205,7 +205,7 @@ widget_mux!(
     }
 );
 
-pub type GameWidget = TextBox<RomSprite, { Board::TILES }, { Board::WIDTH as _ }>;
+pub type GameWidget = WrapPanel<{ Board::TILES }, { Board::WIDTH as _ }>;
 
 widget_group!(
     GameBoard<&Board>,
